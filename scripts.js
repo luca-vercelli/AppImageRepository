@@ -1,4 +1,4 @@
-var app_ids = {};
+var apps = {};
 
 $(document).ready(function() {
     $.ajax({
@@ -42,11 +42,10 @@ function loadapps(data) {
 */
 function loadapp(parent_div, app_data) {
     var app_id = app_data.name.replace(/[:#\.\$//]/g,"-");
-    app_ids[app_data.name] = app_id;
-    var versions = app_data.versions;
+    app_data.app_id = app_id;
+    apps[app_data.name] = app_data;
+    var html_image = "<img class='appimg' src='" + get_icon_url(app_data.icons) + "'></img>";
     var last_version = get_last_version(app_data.versions);
-    var icon_url = get_icon_url(app_data.icons);
-    var html_image = "<img class='appimg' src='" + icon_url + "'></img>";
     var html_download_button = "";
     if (last_version != null) {
         var html_download_caption = "Download";
@@ -156,16 +155,19 @@ function search_on_keyup(evt) {
 */
 function show_apps(str) {
     if (str === undefined || str == null || str == "") {
-        //show all
-        for (var app_name in app_ids) {
-            var app_id = app_ids[app_name];
+        // show all
+        for (var app_name in apps) {
+            var app_id = apps[app_name];
             $('#' + app_id).show();
         }
     } else {
-        for (var app_name in app_ids) {
-            var app_id = app_ids[app_name];
+    	str = str.toLowerCase();
+        for (var app_name in apps) {
+            var app_id = apps[app_name].app_id;
+            var description = apps[app_name].description || "";
             // search case-insensitive in appname only
-            if(app_name.toLowerCase().indexOf(str.toLowerCase()) >= 0) {
+            if(app_name.toLowerCase().indexOf(str) >= 0
+            	|| description.toLowerCase().indexOf(str) >= 0) {
                 $('#' + app_id).show();
             } else {
                 $('#' + app_id).hide();
