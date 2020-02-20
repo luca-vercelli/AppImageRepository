@@ -1,0 +1,82 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"  />
+    <meta name="description" content="AppImage applications repository">
+
+    <title>Appimage repository</title>
+
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="shortcut icon" href="./favicon.ico">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container p-3 border">
+    
+        <div id="messages"></div>
+        <h1><img src="./logo.svg" /> AppImage repository</h1>
+        <p class=""><a href="http://appimage.org">AppImage</a> applications for Linux without installation.</p>
+        <p> This <b>is</b> a distribution of software.
+        As Linux users, we like to find all applications in a single place, and download/install them with a click.
+        This is not possible with traditional <a href="https://appimage.github.io/">AppImageHub</a>.
+        </p>
+        
+        <div id="apps_container"></div>
+    </div>
+    <script>
+    $(document).ready(function() {
+        $.ajax({
+            url: "./appimages.json",
+            success: function(data, textStatus, jqXHR) {
+                loadapps(data); 
+            },
+            error: function(jqXHR, textStatus, errorThrown ) {
+                alert2("Error loading remote data!<br/>Text status: '" + textStatus + "' Error thrown: '" + errorThrown +"'");
+            }
+        });
+    });
+
+    function alert2(text, alert_class="alert-danger") {
+        // see https://getbootstrap.com/docs/4.0/components/alerts/#dismissing
+        $("#messages").html("<div class='alert " + alert_class + "' role='alert'>" + text + "</div>");
+    }
+
+    function loadapps(data) {
+        var parent_div = $("#apps_container");
+        data.forEach(function(item, index) {
+            loadapp(parent_div, item);
+        });
+        console.log("" + data.length + " apps loaded");
+    }
+
+    function loadapp(parent_div, app_data) {
+        var html_div_content = app_data.name;
+        var versions = app_data.versions;
+        var last_version = get_last_version(app_data.versions);
+        if (last_version != null) {
+            var url = last_version.url;
+            var fsize = last_version.filesize;
+            if (fsize != null && fsize > 0) {
+                fsize /= 1048576;
+                html_div_content = html_div_content + " (" + fsize + "Mb)";
+            }
+            html_div_content = "<a href='" + url + "'>" + html_div_content + "</a>";
+        }
+        var html_div = "<div class='float-left'>" + html_div_content + "</div>";
+        parent_div.append(html_div);
+    }
+
+    function get_last_version(versions) {
+        var last_version = null;
+        versions.forEach(function(item, index) {
+            if (item.os == "linux" && (last_version_url == null || last_version.url < item.url)) {
+                last_version = item;
+            }
+        });
+        return last_version
+    }
+
+    </script>
+</body>
+</html>
