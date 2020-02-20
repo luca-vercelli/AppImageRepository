@@ -43,27 +43,37 @@ function loadapps(data) {
 function loadapp(parent_div, app_data) {
     var app_id = app_data.name.replace(/[:#\.\$//]/g,"-");
     app_ids[app_data.name] = app_id;
-    var html_div_content = app_data.name;
     var versions = app_data.versions;
     var last_version = get_last_version(app_data.versions);
-    var icon_url = get_icon_url(app_data.icons)
-    html_div_content = "<img class='appimg' src='" + icon_url + "'></img><br/>" + html_div_content;
+    var icon_url = get_icon_url(app_data.icons);
+    var html_image = "<img class='appimg' src='" + icon_url + "'></img>";
+    var html_download_button = "";
     if (last_version != null) {
+        var html_download_caption = "Download";
         var url = last_version.url;
         var fsize = last_version.filesize;
         if (fsize != null && fsize > 0) {
             fsize = Math.round(fsize / 1048576);
-            html_div_content = html_div_content + " (" + fsize + "Mb)";
+            html_download_caption = html_download_caption + " (" + fsize + "Mb)";
         }
-        html_div_content = "<a href='" + url + "'>" + html_div_content + "</a>";
+        html_download_button = "<a class='btn btn-primary' href='" + url + "' role='button' title='Download'>" + html_download_caption + "</a>";
+    } else {
+        html_download_button = "<a class='btn btn-primary' disabled role='button' title='No versions found'>No download</a>";
     }
-    var html_title = "title='" + get_title(app_data.description) + "' ";
-    var html_div = "<div id='" + app_id + "' class='float-left appbox' " + html_title + ">" + html_div_content + "</div>";
+    var website_url = get_website_url(app_data.links);
+    var html_url_button = "";
+    if (website_url != null) {
+        html_url_button = "<a class='btn btn-secondary' href='" + website_url + "' target='_blank' role='button' title='Visit author website'>Website</a>";
+    } else {
+        html_url_button = "<a class='btn btn-secondary' disabled role='button' title='Website unknown'>No website</a>";
+    }
+    var html_div_content = html_image + "<br/>" + app_data.name + "<br/>" + html_download_button + "<br/>" + html_url_button;
+    var html_div = "<div id='" + app_id + "' class='float-left appbox' title='" + get_title(app_data.description) + "' >" + html_div_content + "</div>";
     parent_div.append(html_div);
 }
 
 /**
-* Get last version for app
+* Get last version for app, or null
 */
 function get_last_version(versions) {
     if (versions === undefined || versions == null) {
@@ -79,7 +89,7 @@ function get_last_version(versions) {
 }
 
 /**
-* Get full app icon url
+* Get full app icon url, or a default value
 */
 function get_icon_url(icons) {
     if (icons != null && icons.length > 0) {
@@ -90,7 +100,22 @@ function get_icon_url(icons) {
 }
 
 /**
-* Get a suitable app description
+* Get full website url, or null
+*/
+function get_website_url(links) {
+    if (links != null && links.length > 0) {
+        for (var i in links) {
+            var link = links[i];
+            if (link.type == "GitHub") {
+                return "https://github.com/" + link.url;
+            }
+        }
+    }
+    return null;
+}
+
+/**
+* Get a suitable app description, or a default value
 */
 function get_title(description) {
     if (description !== undefined && description != null && description != "") {
