@@ -14,6 +14,11 @@ $(document).ready(function() {
         }
     });
     $("#search_input").keyup(search_on_keyup);
+    $("#btn_multiselect").click(show_checkboxes);
+    $("#btn_generate").click(function(){
+    	generate_script();
+    	hide_checkboxes();
+    });
 });
 
 function alert2(text, alert_class="alert-danger") {
@@ -66,7 +71,8 @@ function loadapp(parent_div, app_data) {
     } else {
         html_url_button = "<a class='btn btn-secondary' disabled role='button' title='Website unknown'>No website</a>";
     }
-    var html_div_content = html_image + "<br/>" + app_data.name + "<br/>" + html_download_button + "<br/>" + html_url_button;
+    var html_checkbox = "<input type='checkbox' class='float-left d-none' id='check_" + app_id + "'></input>";
+    var html_div_content = html_checkbox + html_image + "<br/>" + app_data.name + "<br/>" + html_download_button + "<br/>" + html_url_button;
     var html_div = "<div id='" + app_id + "' class='float-left appbox' title='" + get_title(app_data.description) + "' >" + html_div_content + "</div>";
     parent_div.append(html_div);
 }
@@ -175,3 +181,34 @@ function show_apps(str) {
         }
     }
 }
+
+/**
+* Show checkboxes
+*/
+function show_checkboxes() {
+    for (var app_name in apps) {
+        var app_id = apps[app_name].app_id;
+        $('#check_' + app_id).removeClass("d-none");
+    }
+    $('#p_generate').removeClass("d-none");
+}
+
+/**
+* Hide checkboxes
+*/
+function hide_checkboxes() {
+    for (var app_name in apps) {
+        var app_id = apps[app_name].app_id;
+        $('#check_' + app_id).addClass("d-none");
+    }
+    $('#p_generate').addClass("d-none");
+}
+
+/**
+* Generate and download install script
+*/
+function generate_script() {
+    alert("Not implemented yet...");
+}
+
+
