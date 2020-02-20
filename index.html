@@ -37,6 +37,7 @@
         As Linux users, we like to find all applications in a single place, and download/install them with a click.
         This is not possible with traditional <a href="https://appimage.github.io/">AppImageHub</a>.
         </p>
+        <p><b>Status: work in progess!</b></p>
         
         <div id="apps_container"></div>
     </div>
@@ -82,7 +83,7 @@
             }
             html_div_content = "<a href='" + url + "'>" + html_div_content + "</a>";
         }
-        var html_div = "<div class='float-left appbox'>" + html_div_content + "</div>";
+        var html_div = "<div class='float-left appbox' title='" + app_data.description + "'>" + html_div_content + "</div>";
         parent_div.append(html_div);
     }
 
