@@ -27,7 +27,7 @@
     <script>
     $(document).ready(function() {
         $.ajax({
-            url: "./appimages.json",
+            url: "https://luca-vercelli.github.io/AppImageRepository/appimages.json",
             success: function(data, textStatus, jqXHR) {
                 loadapps(data); 
             },
@@ -70,7 +70,7 @@
     function get_last_version(versions) {
         var last_version = null;
         versions.forEach(function(item, index) {
-            if (item.os == "linux" && (last_version_url == null || last_version.url < item.url)) {
+            if (item.os == "linux" && (last_version == null || last_version.url < item.url)) {
                 last_version = item;
             }
         });
