@@ -10,9 +10,25 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    
+    <style>
+    .appbox {
+        border: solid 1px;
+        border-color:#dee2e6;
+        padding:5px;
+        margin: 3px;
+        width: 4cm;
+        height: 4cm;
+        text-align: center;
+    }
+    .appimg {
+        width: 2cm;
+        height: 2cm;
+    }
+    </style>
 </head>
 <body>
-    <div class="container p-3 border">
+    <div class="container">
     
         <div id="messages"></div>
         <h1><img src="./logo.svg" /> AppImage repository</h1>
@@ -45,6 +61,7 @@
     function loadapps(data) {
         var parent_div = $("#apps_container");
         data.forEach(function(item, index) {
+            console.log(item);
             loadapp(parent_div, item);
         });
         console.log("" + data.length + " apps loaded");
@@ -54,20 +71,25 @@
         var html_div_content = app_data.name;
         var versions = app_data.versions;
         var last_version = get_last_version(app_data.versions);
+        var icon_url = get_icon_url(app_data.icons)
+        html_div_content = "<img class='appimg' src='" + icon_url + "'></img><br/>" + html_div_content;
         if (last_version != null) {
             var url = last_version.url;
             var fsize = last_version.filesize;
             if (fsize != null && fsize > 0) {
-                fsize /= 1048576;
+                fsize = Math.round(fsize / 1048576);
                 html_div_content = html_div_content + " (" + fsize + "Mb)";
             }
             html_div_content = "<a href='" + url + "'>" + html_div_content + "</a>";
         }
-        var html_div = "<div class='float-left'>" + html_div_content + "</div>";
+        var html_div = "<div class='float-left appbox'>" + html_div_content + "</div>";
         parent_div.append(html_div);
     }
 
     function get_last_version(versions) {
+        if (versions === undefined || versions == null) {
+            return null;
+        }
         var last_version = null;
         versions.forEach(function(item, index) {
             if (item.os == "linux" && (last_version == null || last_version.url < item.url)) {
@@ -75,6 +97,14 @@
             }
         });
         return last_version
+    }
+    
+    function get_icon_url(icons) {
+        if (icons != null && icons.length > 0) {
+            return "https://gitcdn.xyz/repo/AppImage/appimage.github.io/master/database/" + icons[0];
+        } else {
+            return "./logo.svg";
+        }
     }
 
     </script>
