@@ -64,6 +64,12 @@ def create_db(_continue=False):
     statistics.packages = len(all_apps)
     loops = 0
     for app_dict in all_apps:
+        # es. app_dict =
+        # {"name": "AKASHA", "description": "Akasha platform", "categories": ["Network"],
+        # "authors": [{"name": "AkashaProject", "url": "https://github.com/AkashaProject"}],
+        # "license": None, "links": [{"type": "GitHub", "url": "AkashaProject/Community"},
+        # {"type": "Download", "url": "https://github.com/AkashaProject/Community/releases"}],
+        # "icons": ["AKASHA/icons/128x128/akasha.png"], "screenshots": ["AKASHA/screenshot.png"]}
         url = None
         if "links" in app_dict and app_dict["links"]:
             for x in app_dict["links"]:
@@ -71,12 +77,6 @@ def create_db(_continue=False):
                     url = x["url"]
                     break
         if url:
-            # es. app_dict =
-            # {"name": "AKASHA", "description": "Akasha platform", "categories": ["Network"],
-            # "authors": [{"name": "AkashaProject", "url": "https://github.com/AkashaProject"}],
-            # "license": None, "links": [{"type": "GitHub", "url": "AkashaProject/Community"},
-            # {"type": "Download", "url": "https://github.com/AkashaProject/Community/releases"}],
-            # "icons": ["AKASHA/icons/128x128/akasha.png"], "screenshots": ["AKASHA/screenshot.png"]}
             _logger.info("package " + str(app_dict["name"]))
             _oldappimages = statistics.app_images
             if "versions" in app_dict and _continue:
@@ -98,24 +98,50 @@ def create_db(_continue=False):
 def search_versions(url, versions=None, depth=1):
     """
     Follow url searching for AppImages
+    @param url is a full url, not just "/hello" or "#hello"
     """
     global crawled_urls, statistics
     if versions is None:
         versions = []
-    if url is not None:
+
+    if url is not None and url != "/":
+
+        if url in crawled_urls:
+            return
         _logger.info(" > crawling URL " + str(url))
+
         crawled_urls.add(url)
-        statistics.crawled_urls += 1
-        response = requests.get(url)
-        parser = AppImageHTMLParser(url, versions, depth)
-        parser.feed(response.text)
+
+        try:
+            response = requests.head(url, allow_redirects=True)
+            # github link redirects to real link
+            # by default, 'requests' follow links in GET non in HEAD
+        except:
+            _logger.error("Cannot connect to URL '%s'" % url)
+            return
+
+        crawled_urls.add(response.url)
+        mimetype = get_mimetype(response)
+        if mimetype is not None and mimetype.startswith("text/html"):
+            # The given URL is an HTML Page
+            response = requests.get(url)
+            parser = AppImageHTMLParser(url, versions, depth)
+            parser.feed(response.text)
+        else:
+            # The given URL could be a downloadable file
+            props = guess_appimage_properties(url, response)
+            if props is not None:
+                _logger.info("  > found AppImage!")
+                if props not in self.versions:
+                    self.versions.append(props)
+                    statistics.app_images += 1
+
         _logger.info(" > END crawling URL " + str(url))
-    return versions
 
 
 class AppImageHTMLParser(HTMLParser):
     """
-    Follow links in HTML page, searching for AppImages
+    Follow links in HTML page
     """
 
     def __init__(self, url, versions, depth):
@@ -132,29 +158,14 @@ class AppImageHTMLParser(HTMLParser):
         """
         Executed when any tag begins
         """
-        global crawled_urls, statistics
         if tag != "a":      # Hope it's case-insensitive
             return
-        url = self.get_attr(attrs, "href")
-        if not url:
-            return
-        if url.startswith("/") or url.startswith("#"):
-            url = self.url + url
-        if url in crawled_urls:
-            return
-        _logger.info("  > found link " + str(url))
-        crawled_urls.add(url)
-        props = guess_appimage_properties(url)
-        if props is not None:
-            _logger.info("  > found AppImage!")
-            if props not in self.versions:
-                self.versions.append(props)
-                statistics.app_images += 1
-        elif self.depth > 0:
-            mimetype = get_mimetype(url)
-            _logger.info("  > mimetype: " + str(mimetype))
-            if mimetype is not None and mimetype.startswith("text/html"):
-                search_versions(url, self.versions, self.depth-1)
+        url2 = self.get_attr(attrs, "href")
+        if url2 and url2 != "/":
+            if url2.startswith("/") or url2.startswith("#"):
+                url2 = url_remove_fragment(url) + url2
+            search_versions(url2, self.versions, self.depth-1)
+
 
     def get_attr(self, attrs, attr_name):
         """
@@ -164,10 +175,11 @@ class AppImageHTMLParser(HTMLParser):
             if attr == attr_name:
                 return value
 
-def guess_appimage_properties(url):
+
+def guess_appimage_properties(url, response):
     """
     return a record of AppImage properties, or None
-    @param url
+    @param url Gihubb download URL
     """
     if url.startswith("https://github.com") and "/releases/" in url:
         filename = url[url.rfind("/")+1:]
@@ -183,38 +195,41 @@ def guess_appimage_properties(url):
                 os = "linux"
         if os is not None:
             return {
-                "url": url,
+                "url": response.url,    # could be different from url
                 "os": os,
-                "filesize": get_filesize(url)
+                "filesize": get_filesize(response)
                 }
     return None
 
 
-def get_mimetype(url):
+def url_remove_fragment(url):
     """
-    Issue a HEAD request to retrieve MIME file type without downloading it
+    http://one/two#three  =>  http://one/two
+    """
+    index = url.find("#")
+    if index > 0:
+        url = url[0:index]
+    else:
+        return url
+
+
+def get_mimetype(response):
+    """
+    Extract MIME type from given response (usually a HEAD request), or None
     """
     try:
-        response = requests.head(url)
-    except:
-        return None
-    if "Content-Type" in response.headers:          # case-insensitive
         return response.headers["Content-Type"]
-    else:
+    except:     # KeyError
         return None
 
 
-def get_filesize(url):
+def get_filesize(response):
     """
-    Issue a HEAD request to retrieve file size without downloading it
+    Extract file size from given response (usually a HEAD request), or None
     """
     try:
-        response = requests.head(url)
-    except:
-        return None
-    if "Content-Length" in response.headers:          # case-insensitive
         return int(response.headers["Content-Length"])
-    else:
+    except:     # KeyError, ValueError
         return None
 
 
@@ -241,8 +256,8 @@ def parse_cli_args():
     """
     Parse CLI aguments, return an object containing all of them
     """
-    parser = argparse.ArgumentParser(description="(Re)generate apps database." + \
-        "DB is by default in " + DB)
+    parser = argparse.ArgumentParser(description="(Re)generate apps database." +
+                                     "DB is by default in " + DB)
     parser.add_argument("-v", "--version", action="version", version="%(prog)s " + VERSION)
     parser.add_argument("--db", help="custom DB location (optional)")
     parser.add_argument("--max-loops", type=int, help="a limit on number of packages (for debug purposes)")
@@ -258,14 +273,14 @@ class Statistics:
     """
     def __init__(self):
         self.packages = 0
-        self.crawled_urls = 0
         self.app_images = 0
         self.packages_with_appimages = 0
         self.start_time = datetime.datetime.now()
 
     def __str__(self):
+        global crawled_urls
         return "Tot.packages:\t\t\t\t" + str(self.packages) + "\n" + \
-            "Crawled URL's:\t\t\t\t" + str(self.crawled_urls) + "\n" + \
+            "Crawled URL's:\t\t\t\t" + str(len(crawled_urls)) + "\n" + \
             "AppImage's found:\t\t\t" + str(self.app_images) + "\n" + \
             "Packages with at least one AppImage:\t" + str(self.packages_with_appimages) + "\n" + \
             "Time elapsed:\t\t\t\t" + str(self.time_elapsed()) + "h.\n"
