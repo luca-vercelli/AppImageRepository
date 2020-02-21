@@ -16,7 +16,7 @@ LOCAL_CONF_DIR = os.path.join(HOME, ".config", "appimages-util")
 DB = os.path.join(LOCAL_CONF_DIR, "appimages.json")
 SAVE_OFTEN = True
 LOG_LEVEL = logging.DEBUG
-MAX_LOOPS = 10              # DEBUG ONLY. if <=0 then no limit.
+MAX_LOOPS = 0              # DEBUG ONLY. if <=0 then no limit.
 VERSION = "1.0"
 
 
@@ -240,6 +240,7 @@ def parse_cli_args():
         "DB is by default in " + DB)
     parser.add_argument("-v", "--version", action="version", version="%(prog)s " + VERSION)
     parser.add_argument("--db", help="custom DB location (optional)")
+    parser.add_argument("--max-loops", type=int, help="a limit on number of packages (for debug purposes)")
     parser.add_argument("--continue", action="store_true", dest="_continue",
                         help="do not download, continue a previous build")
     args = parser.parse_args()
@@ -284,6 +285,8 @@ if __name__ == "__main__":
     _logger.debug("CLI arguments: " + str(args))
     if args.db:
         DB = args.db
+    if args.max_loop:
+        MAX_LOOPS = args.max_loop
     _logger.info("Begin search...")
     try:
         create_db(args._continue)
