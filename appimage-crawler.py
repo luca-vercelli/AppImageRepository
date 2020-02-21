@@ -173,10 +173,11 @@ def guess_appimage_properties(url):
         os = None
         if filename.find("AppImage") >= 0:
             # this will cut out a lot of files, it"s a security measure
+            # os values as in sys.platform
             if filename.endswith(".dmg"):
-                os = "mac"
+                os = "darwin"
             elif filename.endswith(".exe"):
-                os = "win"
+                os = "win32"
             else:
                 os = "linux"
         if os is not None:
