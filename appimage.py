@@ -65,7 +65,10 @@ def read_db():
     """
     Return json data present on local db
     """
-    return json.load(DB)
+    x = None
+    with open(DB) as in_file:
+        x = json.load(in_file)
+    return x
 
 
 def get_db_record(appname):
