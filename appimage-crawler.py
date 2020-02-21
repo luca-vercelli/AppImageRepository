@@ -108,7 +108,7 @@ def search_versions(url, versions=None, depth=1):
     if url is not None and url != "/":
 
         if url in crawled_urls:
-            return
+            return versions
         _logger.info(" > crawling URL " + str(url))
 
         crawled_urls.add(url)
@@ -119,7 +119,7 @@ def search_versions(url, versions=None, depth=1):
             # by default, 'requests' follow links in GET non in HEAD
         except:
             _logger.error("Cannot connect to URL '%s'" % url)
-            return
+            return versions
 
         crawled_urls.add(response.url)
         mimetype = get_mimetype(response)
@@ -134,12 +134,13 @@ def search_versions(url, versions=None, depth=1):
             props = guess_appimage_properties(url, response)
             if props is not None:
                 _logger.info("  > found AppImage!")
-                if props not in self.versions:
-                    self.versions.append(props)
+                if props not in versions:
+                    versions.append(props)
                     statistics.app_images += 1
 
         _logger.info(" > END crawling URL " + str(url))
-
+    
+    return versions
 
 class AppImageHTMLParser(HTMLParser):
     """
