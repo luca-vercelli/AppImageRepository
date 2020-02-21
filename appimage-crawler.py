@@ -86,11 +86,13 @@ def create_db(_continue=False):
     save_db(all_packages)
 
 
-def search_versions(url, versions=[], depth=1):
+def search_versions(url, versions=null, depth=1):
     """
     Follow url searching for AppImages
     """
     global crawled_urls, statistics
+    if versions == null:
+        versions = []
     if url is not None:
         _logger.info(" > crawling URL " + str(url))
         crawled_urls.add(url)
