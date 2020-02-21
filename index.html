@@ -38,11 +38,15 @@
         This is not possible with traditional <a href="https://appimage.github.io/">AppImageHub</a>.
         </p>
         <p><b>Status: work in progress!</b></p>
-        <p><input class="form-control" id="search_input" placeholder="Search app names or descriptions..." disabled></input></p>
         
-        <p>If you prefer, you can <button class="btn btn-secondary" role="button" id="btn_multiselect">Generate a download script</button>.
-        <span class="d-none" id="p_generate">Select desired apps, then press <button class="btn btn-primary" role="button" id="btn_generate">Generate</button>.</span>
+        <div id="controls">
+            <p><input class="form-control" id="search_input" placeholder="Search app names or descriptions..."></input></p>
+            
+            <p>If you prefer, you can <button class="btn btn-secondary" role="button" id="btn_multiselect">Generate a download script</button>.
+            <span class="d-none" id="p_generate">Select desired apps, then press <button class="btn btn-primary" role="button" id="btn_generate">Generate</button>,
+            or <button class="btn btn-danger" role="button" id="btn_dont_generate">Cancel</button>.</span>
         </p>
+        </div>
         
         <div id="apps_container">Loading...</div>
     </div>

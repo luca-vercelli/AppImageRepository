@@ -1,20 +1,11 @@
 var apps = {};
 
 $(document).ready(function() {
-    $.ajax({
-        url: "https://luca-vercelli.github.io/AppImageRepository/appimages.json",
-        success: function(data, textStatus, jqXHR) {
-            $("#search_input").prop('disabled', true);
-            $("#search_input").val("");
-            loadapps(data);
-            $("#search_input").prop('disabled', false);
-        },
-        error: function(jqXHR, textStatus, errorThrown ) {
-            alert2("Error loading remote data!<br/>Text status: '" + textStatus + "' Error thrown: '" + errorThrown +"'");
-        }
-    });
+    loadapps();
+    
     $("#search_input").keyup(search_on_keyup);
     $("#btn_multiselect").click(show_checkboxes);
+    $("#btn_dont_generate").click(hide_checkboxes);
     $("#btn_generate").click(function(){
     	generate_script();
     	hide_checkboxes();
@@ -31,9 +22,27 @@ function alert2_dismiss() {
 }
 
 /**
-* Draw all app boxes
+* Draw all app boxes (perform AJAX call)
 */
-function loadapps(data) {
+function loadapps() {
+    $("#controls").hide();
+    $.ajax({
+        url: "https://luca-vercelli.github.io/AppImageRepository/appimages.json",
+        success: function(data, textStatus, jqXHR) {
+            _loadapps(data);
+            $("#search_input").val("");
+            $("#controls").show();
+        },
+        error: function(jqXHR, textStatus, errorThrown ) {
+            alert2("Error loading remote data!<br/>Text status: '" + textStatus + "' Error thrown: '" + errorThrown +"'");
+        }
+    });
+}
+
+/**
+* Draw all app boxes (after AJAX call)
+*/
+function _loadapps(data) {
     var parent_div = $("#apps_container");
     parent_div.html("");
     data.forEach(function(item, index) {
