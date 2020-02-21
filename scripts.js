@@ -71,7 +71,7 @@ function loadapp(parent_div, app_data) {
     } else {
         html_url_button = "<a class='btn btn-secondary' disabled role='button' title='Website unknown'>No website</a>";
     }
-    var html_checkbox = "<input type='checkbox' class='float-left d-none' id='check_" + app_id + "'></input>";
+    var html_checkbox = "<input type='checkbox' class='float-left d-none appchecked' id='check_" + app_id + "' value='" + app_data.name + "'></input>";
     var html_div_content = html_checkbox + html_image + "<br/>" + app_data.name + "<br/>" + html_download_button + "<br/>" + html_url_button;
     var html_div = "<div id='" + app_id + "' class='float-left appbox' title='" + get_title(app_data.description) + "' >" + html_div_content + "</div>";
     parent_div.append(html_div);
@@ -186,10 +186,11 @@ function show_apps(str) {
 * Show checkboxes
 */
 function show_checkboxes() {
-    for (var app_name in apps) {
-        var app_id = apps[app_name].app_id;
-        $('#check_' + app_id).removeClass("d-none");
-    }
+    //for (var app_name in apps) {
+    //    var app_id = apps[app_name].app_id;
+    //    $('#check_' + app_id).removeClass("d-none");
+    //}
+    $(".appchecked").removeClass("d-none");
     $('#p_generate').removeClass("d-none");
 }
 
@@ -197,10 +198,11 @@ function show_checkboxes() {
 * Hide checkboxes
 */
 function hide_checkboxes() {
-    for (var app_name in apps) {
-        var app_id = apps[app_name].app_id;
-        $('#check_' + app_id).addClass("d-none");
-    }
+    //for (var app_name in apps) {
+    //    var app_id = apps[app_name].app_id;
+    //    $('#check_' + app_id).addClass("d-none");
+    //}
+    $(".appchecked").addClass("d-none");
     $('#p_generate').addClass("d-none");
 }
 
@@ -208,7 +210,26 @@ function hide_checkboxes() {
 * Generate and download install script
 */
 function generate_script() {
-    alert("Not implemented yet...");
+    var appnames = $(".appchecked:checked").map(function(){
+        return $(this).val();
+    }).get();
+    var script = "";
+    for (var i in appnames) {
+        script += "appimage install " + appnames[i] + "\n";
+    }
+    download("install.sh", script);
 }
 
-
+/**
+* Create and download text file.
+* @see https://stackoverflow.com/questions/3665115
+*/
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
