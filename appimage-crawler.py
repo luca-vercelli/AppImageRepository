@@ -285,8 +285,8 @@ if __name__ == "__main__":
     _logger.debug("CLI arguments: " + str(args))
     if args.db:
         DB = args.db
-    if args.max_loop:
-        MAX_LOOPS = args.max_loop
+    if args.max_loops:
+        MAX_LOOPS = args.max_loops
     _logger.info("Begin search...")
     try:
         create_db(args._continue)
