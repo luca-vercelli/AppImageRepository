@@ -184,21 +184,20 @@ def guess_appimage_properties(url, response):
     return a record of AppImage properties, or None
     @param url Gihubb download URL
     """
+    # TODO allow tar/zip archives
     if url.startswith("https://github.com") and "/releases/" in url:
         filename = url[url.rfind("/")+1:]
         os = None
-        if filename.find("AppImage") >= 0:
-            # this will cut out a lot of files, it"s a security measure
-            # os values as in sys.platform
-            if filename.endswith(".dmg"):
-                os = "darwin"
-            elif filename.endswith(".exe"):
-                os = "win32"
-            else:
-                os = "linux"
+        # os values as in sys.platform
+        if filename.endswith(".dmg"):
+            os = "darwin"
+        elif filename.endswith(".exe"):
+            os = "win32"
+        elif filename.endswith("AppImage"):
+            os = "linux"
         if os is not None:
             return {
-                "url": response.url,    # could be different from url
+                "url": url,
                 "os": os,
                 "filesize": get_filesize(response)
                 }
