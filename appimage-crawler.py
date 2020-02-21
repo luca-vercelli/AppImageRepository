@@ -16,6 +16,7 @@ LOCAL_CONF_DIR = os.path.join(HOME, ".config", "appimages-util")
 DB = os.path.join(LOCAL_CONF_DIR, "appimages.json")
 SAVE_OFTEN = True
 LOG_LEVEL = logging.DEBUG
+MAX_LOOPS = 10              # DEBUG ONLY. if <=0 then no limit.
 VERSION = "1.0"
 
 
@@ -58,6 +59,7 @@ def create_db(_continue=False):
     else:
         all_packages = read_db()
     statistics.packages = len(all_packages)
+    loops = 0
     for package_dict in all_packages:
         url = None
         if "links" in package_dict and package_dict["links"]:
@@ -77,21 +79,24 @@ def create_db(_continue=False):
             if "versions" in package_dict and _continue:
                 # skip package, previously elaborated
                 continue
+            loops += 1
             package_dict["versions"] = search_versions(url)
             if statistics.app_images > _oldappimages:
                 statistics.packages_with_appimages += 1
             if SAVE_OFTEN:
                 save_db(all_packages)
+            if MAX_LOOPS > 0 and loops >= MAX_LOOPS:
+                break
         # TODO else delete that package
     save_db(all_packages)
 
 
-def search_versions(url, versions=null, depth=1):
+def search_versions(url, versions=None, depth=1):
     """
     Follow url searching for AppImages
     """
     global crawled_urls, statistics
-    if versions == null:
+    if versions is None:
         versions = []
     if url is not None:
         _logger.info(" > crawling URL " + str(url))
