@@ -8,6 +8,7 @@ import logging
 from html.parser import HTMLParser
 import argparse
 import datetime
+from urllib.parse import urlsplit, urlunsplit
 
 # constants
 URL_FEEDS = "https://appimage.github.io/feed.json"
@@ -124,9 +125,10 @@ def search_versions(url, versions=None, depth=1):
         mimetype = get_mimetype(response)
         if mimetype is not None and mimetype.startswith("text/html"):
             # The given URL is an HTML Page
-            response = requests.get(url)
-            parser = AppImageHTMLParser(url, versions, depth)
-            parser.feed(response.text)
+            if depth > 0:
+                response = requests.get(url)
+                parser = AppImageHTMLParser(url, versions, depth)
+                parser.feed(response.text)
         else:
             # The given URL could be a downloadable file
             props = guess_appimage_properties(url, response)
@@ -161,9 +163,9 @@ class AppImageHTMLParser(HTMLParser):
         if tag != "a":      # Hope it's case-insensitive
             return
         url2 = self.get_attr(attrs, "href")
-        if url2 and url2 != "/":
-            if url2.startswith("/") or url2.startswith("#"):
-                url2 = url_remove_fragment(url) + url2
+        if url2 and url2 != "/" and not url2.startswith("#"):
+            if url2.startswith("/"):
+                url2 = url_absolute(url2, self.url)
             search_versions(url2, self.versions, self.depth-1)
 
 
@@ -202,13 +204,32 @@ def guess_appimage_properties(url, response):
     return None
 
 
+def url_absolute(path, parent_url):
+    """
+    (/newpath,  http://server/oldpath)   =>  http://server/newpath
+    """
+    parts = urlsplit(parent_url)
+    return urlunsplit([parts[0], parts[1], path, None, None])
+
 def url_remove_fragment(url):
     """
     http://one/two#three  =>  http://one/two
     """
     index = url.find("#")
     if index > 0:
-        url = url[0:index]
+        return url[0:index]
+    else:
+        return url
+
+
+def url_get_parent(url):
+    """
+    http://one/two/three  =>  http://one/two
+    http://one            =>  http://one
+    """
+    index = url.rfind("/")
+    if index > 8:           # avoid https://
+        return url[0:index]
     else:
         return url
 
