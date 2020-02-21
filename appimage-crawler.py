@@ -57,41 +57,42 @@ def create_db(_continue=False):
     """
     global statistics
     if not _continue:
-        all_packages = download_initial_db()
-        save_db(all_packages)
+        all_apps = download_initial_db()
+        save_db(all_apps)
     else:
-        all_packages = read_db()
-    statistics.packages = len(all_packages)
+        all_apps = read_db()
+    statistics.packages = len(all_apps)
     loops = 0
-    for package_dict in all_packages:
+    for app_dict in all_apps:
         url = None
-        if "links" in package_dict and package_dict["links"]:
-            for x in package_dict["links"]:
+        if "links" in app_dict and app_dict["links"]:
+            for x in app_dict["links"]:
                 if x["type"] == "Download":
                     url = x["url"]
                     break
         if url:
-            # es. package_dict =
+            # es. app_dict =
             # {"name": "AKASHA", "description": "Akasha platform", "categories": ["Network"],
             # "authors": [{"name": "AkashaProject", "url": "https://github.com/AkashaProject"}],
             # "license": None, "links": [{"type": "GitHub", "url": "AkashaProject/Community"},
             # {"type": "Download", "url": "https://github.com/AkashaProject/Community/releases"}],
             # "icons": ["AKASHA/icons/128x128/akasha.png"], "screenshots": ["AKASHA/screenshot.png"]}
-            _logger.info("package " + str(package_dict["name"]))
+            _logger.info("package " + str(app_dict["name"]))
             _oldappimages = statistics.app_images
-            if "versions" in package_dict and _continue:
+            if "versions" in app_dict and _continue:
                 # skip package, previously elaborated
                 continue
             loops += 1
-            package_dict["versions"] = search_versions(url)
+            app_dict["versions"] = search_versions(url)
             if statistics.app_images > _oldappimages:
                 statistics.packages_with_appimages += 1
             if SAVE_OFTEN:
-                save_db(all_packages)
+                save_db(all_apps)
             if MAX_LOOPS > 0 and loops >= MAX_LOOPS:
                 break
+            _logger.info("Statistics:\n" + str(statistics))
         # TODO else delete that package
-    save_db(all_packages)
+    save_db(all_apps)
 
 
 def search_versions(url, versions=None, depth=1):
@@ -226,14 +227,14 @@ def create_parent_dir(filename):
         os.makedirs(parentdir, exist_ok=True)
 
 
-def save_db(all_packages):
+def save_db(all_apps):
     """
-    Save all_packages to disk, using DB as filename
+    Save all_apps to disk, using DB as filename
     """
     _logger.debug("Saving to database " + DB)
     create_parent_dir(DB)
     with open(DB, "w") as outfile:
-        json.dump(all_packages, outfile)
+        json.dump(all_apps, outfile)
 
 
 def parse_cli_args():
