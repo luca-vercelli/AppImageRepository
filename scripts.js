@@ -1,4 +1,6 @@
 var apps = {};
+var cur_platform = "linux";
+var apps_data = [];
 
 $(document).ready(function() {
     loadapps();
@@ -9,6 +11,10 @@ $(document).ready(function() {
     $("#btn_generate").click(function(){
     	generate_script();
     	hide_checkboxes();
+    });
+    $("#os_select").change(function() {
+        cur_platform = $(this).val();
+        drawapps();
     });
 });
 
@@ -29,7 +35,8 @@ function loadapps() {
     $.ajax({
         url: "https://luca-vercelli.github.io/AppImageRepository/appimages.json",
         success: function(data, textStatus, jqXHR) {
-            _loadapps(data);
+            apps_data = data;
+            drawapps();
             $("#search_input").val("");
             $("#controls").show();
         },
@@ -42,13 +49,13 @@ function loadapps() {
 /**
 * Draw all app boxes (after AJAX call)
 */
-function _loadapps(data) {
+function drawapps() {
     var parent_div = $("#apps_container");
     parent_div.html("");
-    data.forEach(function(item, index) {
+    apps_data.forEach(function(item, index) {
         loadapp(parent_div, item);
     });
-    console.log("" + data.length + " apps loaded");
+    console.log("" + apps_data.length + " apps loaded");
 }
 
 /**
@@ -95,7 +102,7 @@ function get_last_version(versions) {
     }
     var last_version = null;
     versions.forEach(function(item, index) {
-        if (item.os == "linux" && (last_version == null || last_version.url < item.url)) {
+        if (item.os == cur_platform && (last_version == null || last_version.url < item.url)) {
             last_version = item;
         }
     });
