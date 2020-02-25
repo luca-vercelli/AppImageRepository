@@ -179,7 +179,7 @@ function show_apps(str) {
     if (str === undefined || str == null || str == "") {
         // show all
         for (var app_name in apps) {
-            var app_id = apps[app_name];
+            var app_id = apps[app_name].app_id;
             $('#' + app_id).show();
         }
     } else {
@@ -187,7 +187,7 @@ function show_apps(str) {
         for (var app_name in apps) {
             var app_id = apps[app_name].app_id;
             var description = apps[app_name].description || "";
-            // search case-insensitive in appname only
+            // search case-insensitive in appname and description
             if(app_name.toLowerCase().indexOf(str) >= 0
             	|| description.toLowerCase().indexOf(str) >= 0) {
                 $('#' + app_id).show();
