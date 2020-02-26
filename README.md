@@ -10,4 +10,8 @@ We provide
 * a webinterface https://luca-vercelli.github.io/AppImageRepository/ that allow downoading software found in the database
 * a tool `appimage.py` that allows installing/removing packages from CLI looking at the database
 
-Currently, `appimage-crawler.py` requires several days of computation to generate data. Probably that could be improved.
+
+## Known issues
+
+* Currently, `appimage-crawler.py` requires several days of computation to generate data. Probably that could be improved.
+* Sometimes, `appimage-crawler.py` stucks, it must be stopped and relaunched with `--continue` option. (Why?)
