@@ -114,7 +114,9 @@ def search_versions(url, versions=None, depth=1):
         crawled_urls.add(url)
 
         try:
-            response = requests.head(url, allow_redirects=True)
+            _logger.debug("DEBUG: init requests.head...")
+            response = requests.head(url, allow_redirects=True, timeout=10) # timeout in seconds
+            _logger.debug("DEBUG: requests.head done.")
             # github link redirects to real link
             # by default, 'requests' follow links in GET non in HEAD
         except:
@@ -126,7 +128,9 @@ def search_versions(url, versions=None, depth=1):
         if mimetype is not None and mimetype.startswith("text/html"):
             # The given URL is an HTML Page
             if depth > 0:
-                response = requests.get(url)
+                _logger.debug("DEBUG: init requests.get...")
+                response = requests.get(url, timeout=30) # timeout in seconds
+                _logger.debug("DEBUG: requests.get done.")
                 parser = AppImageHTMLParser(url, versions, depth)
                 parser.feed(response.text)
         else:
