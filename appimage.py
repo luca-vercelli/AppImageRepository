@@ -121,7 +121,7 @@ def filter_versions(versions):
     """
     extract only versions compatible with current platform, and sort them
     """
-    versions = [x in versions if x.os == OS]
+    versions = [x for x in versions if x.os == OS]
     return sorted(versions)
 
 
