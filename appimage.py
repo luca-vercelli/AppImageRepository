@@ -89,7 +89,6 @@ def list_all():
         return
     for x in apps:
         print(x["name"])
-    return json.load(DB)
 
 
 def list():
