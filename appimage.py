@@ -18,10 +18,10 @@ DB = os.path.join(LOCAL_CONF_DIR, "appimages.json")
 APPS_FOLDER = os.path.join(HOME, "Applications")
 LOG_LEVEL = logging.DEBUG
 VERSION = "1.0"
-OS =  sys.platform     #see https://stackoverflow.com/questions/446209
+OS = sys.platform     # see https://stackoverflow.com/questions/446209
 
 
-if not OS in ('win32', 'linux' 'darwin'):
+if OS not in ('win32', 'linux' 'darwin'):
     raise ValueError("Unsupported platform: " + OS)
 
 
@@ -81,6 +81,7 @@ def get_db_record(appname):
             return x
     return None
 
+
 def list_all():
     apps = read_db()
     if not apps:
@@ -108,11 +109,13 @@ def app_installed(appname):
     Search if given app is installed, and in that case return full file path
     return None if not installed
     """
-    local_file = os.path.join(APPS_FOLDER, appname + ".AppImage")   # with no version, ok ?!?
+    local_file = os.path.join(APPS_FOLDER, appname + ".AppImage")
+    # with no version, ok ?!?
     if os.exists(local_file):
         return local_file
     else:
         return None
+
 
 def filter_versions(versions):
     """
@@ -120,6 +123,7 @@ def filter_versions(versions):
     """
     versions = [x in versions if x.os == OS]
     return sorted(versions)
+
 
 def install(appnames):
     for appname in appnames:
@@ -135,18 +139,18 @@ def install(appnames):
         if not versions:
             _logger.debug("DEBUG app=" + str(app))
             _logger.error("App found on database, but no AppImages detected. " +
-                "You may try to manually download it from website %s" % url)
+                          "You may try to manually download it from website %s" % url)
             exit(3)
         download(versions[-1], local_file)
 
 
 def upgrade(appnames):
     # How do you know current version ?!?
-    NOT_IMPLEMENTED() # TODO
+    NOT_IMPLEMENTED()  # TODO
 
 
 def get_updatable_apps():
-    NOT_IMPLEMENTED() # TODO
+    NOT_IMPLEMENTED()  # TODO
 
 
 def remove(appnames, force=False):
@@ -156,7 +160,8 @@ def remove(appnames, force=False):
             os.unlink(local_file)
         else:
             if not force:
-                _logger.error("App %s not found locally, searched in %s" % (appname, local_file))
+                _logger.error("App %s not found locally, searched in %s" %
+                              (appname, local_file))
                 exit(4)
 
 
@@ -209,19 +214,26 @@ def parse_cli_args():
     Parse CLI aguments, return an object containing all of them
     """
     parser = argparse.ArgumentParser(description="Install/remove AppImage's.")
-    parser.add_argument("-v", "--version", action="version", version="%(prog)s " + VERSION)
+    parser.add_argument("-v", "--version", action="version", version="%(prog)s " +
+                        VERSION)
     parser.add_argument("--db", help="custom DB location (optional)")
-    parser.add_argument("--dont-update", action='store_true', help="Avoid updating DB file, if possible")
+    parser.add_argument("--dont-update", action='store_true', help="Avoid " +
+                        "updating DB file, if possible")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--sync', '-s', action='store_true', help='Just update db and exit')
-    group.add_argument('--list', '-l', action='store_true', help='List all AppImages installed in Applications folder')
-    group.add_argument('--list-all', action='store_true', help='List all AppImages present in DB')
-    group.add_argument('--install', '-i', metavar = 'APPNAMES', nargs='+',
-        help='Install specified AppImage into Applications folder, retrieving and downloading the last available AppImage')
-    group.add_argument('--update', '--upgrade', '-u', metavar = 'APPNAMES', nargs='*',
-        help='Update specified AppImage/s in Applications folder, or all apps if no argument is provided')
-    group.add_argument('--remove', '-r', metavar = 'APPNAMES', nargs='+',
-        help='Remove specified AppImage/s in Applications folder')
+    group.add_argument('--sync', '-s', action='store_true', help='Just update db ' +
+                       'and exit')
+    group.add_argument('--list', '-l', action='store_true', help='List all ' +
+                       'AppImages installed in Applications folder')
+    group.add_argument('--list-all', action='store_true', help='List all ' +
+                       'AppImages present in DB')
+    group.add_argument('--install', '-i', metavar='APPNAMES', nargs='+',
+                       help='Install specified AppImage into Applications folder,' +
+                       'retrieving and downloading the last available AppImage')
+    group.add_argument('--update', '--upgrade', '-u', metavar='APPNAMES', nargs='*',
+                       help='Update specified AppImage/s in Applications folder,' +
+                       'or all apps if no argument is provided')
+    group.add_argument('--remove', '-r', metavar='APPNAMES', nargs='+',
+                       help='Remove specified AppImage/s in Applications folder')
     args = parser.parse_args()
     return args
 
@@ -243,10 +255,10 @@ if __name__ == "__main__":
 
     if args.dont_update and not os.exists(DB):
         args.dont_update = False
-        
+
     if (args.sync or args.install or args.update) and not args.dont_update:
         sync()
-    
+
     if args.sync:
         pass
     elif args.list:
